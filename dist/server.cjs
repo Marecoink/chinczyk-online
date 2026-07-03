@@ -27,7 +27,7 @@ var import_http = __toESM(require("http"), 1);
 var import_socket = require("socket.io");
 var import_cors = __toESM(require("cors"), 1);
 var import_path = __toESM(require("path"), 1);
-var import_vite = require("vite");
+var import_url = require("url");
 
 // src/predefinedAssets.ts
 var predefinedMapUrls = [
@@ -36,6 +36,9 @@ var predefinedMapUrls = [
 ];
 
 // server.ts
+var import_meta = {};
+var __filename = (0, import_url.fileURLToPath)(import_meta.url);
+var __dirname = import_path.default.dirname(__filename);
 async function startServer() {
   const app = (0, import_express.default)();
   const PORT = 3e3;
@@ -50,7 +53,6 @@ async function startServer() {
   let globalGameState = {
     appPhase: "lobby",
     gameMode: "classic",
-    // 'classic' or 'six_player'
     activePlayerCount: 4,
     playerNames: { red: "Gracz 1", green: "Gracz 2", yellow: "Gracz 3", blue: "Gracz 4", purple: "Gracz 5", orange: "Gracz 6" },
     playerAvatars: { red: null, green: null, yellow: null, blue: null, purple: null, orange: null },
@@ -65,10 +67,8 @@ async function startServer() {
     chatMessages: [],
     selectedMap: predefinedMapUrls[0].url,
     goreMarks: [],
-    // List of gore and scorch marks on the board
     gameMaster: null,
     connectedUsers: []
-    // Tablica wszystkich graczy online
   };
   let connectedSockets = [];
   io.on("connection", (socket) => {
@@ -97,29 +97,17 @@ async function startServer() {
       console.log(`\u{1F534} Gracz roz\u0142\u0105czony: ${socket.id}`);
       connectedSockets = connectedSockets.filter((id) => id !== socket.id);
       globalGameState.connectedUsers = globalGameState.connectedUsers.filter((u) => u.id !== socket.id);
-      const oldGM = globalGameState.gameMaster;
       globalGameState.gameMaster = connectedSockets.length > 0 ? connectedSockets[0] : null;
-      if (oldGM !== globalGameState.gameMaster) {
-        console.log(`\u{1F451} Sukcesja w\u0142adzy! Nowy Mistrz Gry to: ${globalGameState.gameMaster}`);
-      }
       io.emit("state_update", globalGameState);
     });
   });
-  if (process.env.NODE_ENV !== "production") {
-    const vite = await (0, import_vite.createServer)({
-      server: { middlewareMode: true },
-      appType: "spa"
-    });
-    app.use(vite.middlewares);
-  } else {
-    const distPath = import_path.default.join(process.cwd(), "dist");
-    app.use(import_express.default.static(distPath));
-    app.get("*", (req, res) => {
-      res.sendFile(import_path.default.join(distPath, "index.html"));
-    });
-  }
-  server.listen(3e3, "0.0.0.0", () => {
-    console.log("Serwer dzia\u0142a na porcie 3000 i jest dost\u0119pny w sieci!");
+  const distPath = import_path.default.join(__dirname, "dist");
+  app.use(import_express.default.static(distPath));
+  app.get("*", (req, res) => {
+    res.sendFile(import_path.default.join(distPath, "index.html"));
+  });
+  server.listen(PORT, "0.0.0.0", () => {
+    console.log(`Serwer dzia\u0142a na porcie ${PORT} i jest dost\u0119pny w sieci!`);
   });
 }
 startServer().catch((err) => {
