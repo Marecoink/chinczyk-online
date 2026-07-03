@@ -27,7 +27,6 @@ var import_http = __toESM(require("http"), 1);
 var import_socket = require("socket.io");
 var import_cors = __toESM(require("cors"), 1);
 var import_path = __toESM(require("path"), 1);
-var import_url = require("url");
 
 // src/predefinedAssets.ts
 var predefinedMapUrls = [
@@ -36,9 +35,7 @@ var predefinedMapUrls = [
 ];
 
 // server.ts
-var import_meta = {};
-var __filename = (0, import_url.fileURLToPath)(import_meta.url);
-var __dirname = import_path.default.dirname(__filename);
+var __dirname = process.cwd();
 async function startServer() {
   const app = (0, import_express.default)();
   const PORT = 3e3;
@@ -102,9 +99,13 @@ async function startServer() {
     });
   });
   const distPath = import_path.default.join(__dirname, "dist");
-  app.use(import_express.default.static(distPath));
-  app.get("*", (req, res) => {
+  app.use("/chinczyk-online/assets", import_express.default.static(import_path.default.join(distPath, "assets")));
+  app.use("/chinczyk-online", import_express.default.static(distPath));
+  app.get("/chinczyk-online/*", (req, res) => {
     res.sendFile(import_path.default.join(distPath, "index.html"));
+  });
+  app.get("/", (req, res) => {
+    res.redirect("/chinczyk-online/");
   });
   server.listen(PORT, "0.0.0.0", () => {
     console.log(`Serwer dzia\u0142a na porcie ${PORT} i jest dost\u0119pny w sieci!`);
