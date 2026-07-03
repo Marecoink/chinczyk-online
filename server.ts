@@ -3,13 +3,11 @@ import http from "http";
 import { Server } from "socket.io";
 import cors from "cors";
 import path from "path";
-import { fileURLToPath } from "url"; // Potrzebne do obsługi ścieżek
 import { createServer as createViteServer } from "vite";
 import { predefinedMapUrls } from "./src/predefinedAssets";
 
 // Poprawka dla __dirname w środowisku modułów ES
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+const __dirname = process.cwd();
 
 async function startServer() {
   const app = express();
@@ -52,7 +50,7 @@ async function startServer() {
 
   io.on("connection", (socket) => {
     console.log(`🟢 Nowy gracz podłączony: ${socket.id}`);
-    
+
     connectedSockets.push(socket.id);
     if (!globalGameState.gameMaster) {
       globalGameState.gameMaster = connectedSockets[0];
@@ -74,7 +72,7 @@ async function startServer() {
 
     socket.on("update_state", (newState: any) => {
       globalGameState = { ...globalGameState, ...newState };
-      globalGameState.gameMaster = connectedSockets[0]; 
+      globalGameState.gameMaster = connectedSockets[0];
       io.emit("state_update", globalGameState);
     });
 
@@ -87,12 +85,23 @@ async function startServer() {
     });
   });
 
-  // OBSŁUGA PRODUKCYJNA (gdy folder dist istnieje)
+  // OBSŁUGA PRODUKCYJNA
   const distPath = path.join(__dirname, "dist");
-  app.use(express.static(distPath));
 
-  app.get("*", (req, res) => {
+  // 1. Serwowanie zasobów (JS, CSS) z odpowiednim prefiksem
+  app.use("/chinczyk-online/assets", express.static(path.join(distPath, "assets")));
+
+  // 2. Serwowanie pozostałych plików statycznych
+  app.use("/chinczyk-online", express.static(distPath));
+
+  // 3. Obsługa tras (Single Page Application)
+  app.get("/chinczyk-online/*", (req, res) => {
     res.sendFile(path.join(distPath, "index.html"));
+  });
+
+  // Dodatkowo: przekierowanie z głównego adresu na grę
+  app.get("/", (req, res) => {
+    res.redirect("/chinczyk-online/");
   });
 
   server.listen(PORT, '0.0.0.0', () => {
