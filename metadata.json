@@ -1,0 +1,6 @@
+{
+  "name": "Chińczyk Online",
+  "description": "Gra planszowa Chińczyk dla wielu graczy w czasie rzeczywistym z grafiką 3D.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
