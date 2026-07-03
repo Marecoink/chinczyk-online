@@ -16,7 +16,7 @@ const playerId = (() => {
 })();
 
 // Connect to the socket server at the same origin with persistent playerId
-const socket = io(window.location.origin, {
+const socket = io("http://140.238.168.1:3000", {
   query: { playerId }
 });
 
